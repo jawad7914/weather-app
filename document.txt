@@ -1,0 +1,9 @@
+      weather app
+-main
+1   code using API(visualcrossing) to get realtime weather data 
+2   built a code of signup/login menu and weather menu to run
+-connection
+1   created a datbase in postgreSQL and created a tale named(USERS) 
+2   connect postgreSQL and python code using psycopg2 and connect
+-signup   
+1   we have created signup/login code in python and connected it to the database
