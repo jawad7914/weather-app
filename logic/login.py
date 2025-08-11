@@ -1,4 +1,6 @@
+# login.py
 from db.connection import get_connection
+from jwt_token import generate_jwt
 
 def handle_login(data):
     if not data:
@@ -21,7 +23,13 @@ def handle_login(data):
         user = cursor.fetchone()
 
         if user:
-            return {"message": f"Login successful! Welcome, {user[1]}!"}, 200
+            # Create token with user info
+            payload = {
+                "user_id": user[0],
+                "username": user[1]
+            }
+            token = generate_jwt(payload)
+            return {"message": f"Login successful! Welcome, {user[1]}!", "token": token}, 200
         else:
             return {"error": "Invalid username or password"}, 401
     except Exception as e:
