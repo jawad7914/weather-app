@@ -2,29 +2,38 @@ import jwt
 import os
 from functools import wraps
 from flask import request, jsonify
+from datetime import datetime, timezone, timedelta
 
 # Load from environment (never hardcode secrets)
 SECRET_KEY = os.getenv("JWT_SECRET", "dev_secret_key")  # fallback for dev
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 
-def generate_jwt(payload):
+def generate_jwt(payload, hours_valid=12):
     """
-    Generate a JWT token.
+    Generate a JWT token with expiration.
     """
-    token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    payload_with_exp = {
+        **payload,
+        "exp": int((datetime.now(timezone.utc) + timedelta(hours=hours_valid)).timestamp())
+    }
+    token = jwt.encode(payload_with_exp, SECRET_KEY, algorithm=ALGORITHM)
+    # Ensure we return a string
+    if isinstance(token, bytes):
+        token = token.decode("utf-8")
+
     return token
 
 def verify_jwt(token):
     """
-    Verify a JWT token and return (decoded_payload, error_message).
+    Verify a JWT token and return the decoded payload if valid.
     """
     try:
         decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return decoded, None
+        return decoded
     except jwt.ExpiredSignatureError:
-        return None, "Token expired"
+        return {"error": "Token has expired"}
     except jwt.InvalidTokenError:
-        return None, "Invalid token"
+        return {"error": "Invalid token"}
 
 def token_required(f):
     """
@@ -41,9 +50,9 @@ def token_required(f):
         except IndexError:
             return jsonify({"error": "Invalid Authorization header format"}), 401
 
-        decoded, error = verify_jwt(token)
-        if error:
-            return jsonify({"error": error}), 401
+        decoded = verify_jwt(token)
+        if "error" in decoded:
+            return jsonify(decoded), 401
 
         request.user = decoded  # attach decoded payload (e.g., username, id)
         return f(*args, **kwargs)
