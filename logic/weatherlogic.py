@@ -3,8 +3,10 @@ import requests
 
 API_KEY = "P29G9XPA2WRRNFYRQSB94GARS"
 
-def get_weather():
-    city = request.args.get("city")
+def get_weather(username):
+    data = request.get_json()  # Get JSON body
+    city = data.get("city") if data else None
+    # city = request.args.get("city")
     if not city:
         return jsonify({"error": "City parameter is required"}), 400
 
