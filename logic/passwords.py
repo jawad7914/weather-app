@@ -10,11 +10,10 @@ def handle_forgot_password(data):
     payload = {
         "email": email,
         "type": "reset_password",
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=12)  # short expiry
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=12)  
     }
     token = generate_jwt(payload)
     
-    # Placeholder for sending email
     print(f"Password reset link: http://yourapp/reset-password?token={token}")
 
     return {"message": "Password reset link sent to your email"}, 200
